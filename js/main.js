@@ -121,6 +121,25 @@ $(document).ready(function($) {
 		var targetFC = fcs.getAnotherFc(this);
 		this.log.write(unit.name+' attacks '+ta)
 	};
+	
+	this.getOffenseParameters=function() {
+    	return {
+    		dmg:unit.damage,
+    		cnt:unit.count,
+    		off:unit.offense
+    	};
+    };
+    
+    this.getDefenseParameters=function() {
+    	return {def:unit.defense};
+    };
+    
+    this.pushDamage=function(dmg) {
+    	this.log.write(unit.name+' got '+dmg+' hitpoints of damage');
+    	unit.pushDamage(dmg);
+    	this._update(unit);
+    };
+	
     this.addHandlers();
   };
   FormComponent.prototype = {
@@ -182,6 +201,7 @@ $(document).ready(function($) {
 	this.count=template.cnt||this.baseCount;
 	
 	this.summaryHitpoints=this.hitpoints*this.count;
+	this.isDead=false;
   };
   Unit.prototype={
 	fieldsForDisplay:['name','offense','defense','damage','speed','shorts','hitpoints','count'],
@@ -197,6 +217,17 @@ $(document).ready(function($) {
 	},
   	set:function(parameter, value) {
 		this[parameter] = value;
+	},
+	pushDamage:function(dmg) {
+		this.summaryHitpoints-=dmg;
+		if (this.summaryHitoints<=0) {
+			this.summaryHitoints = 0;
+			this.count=0;
+			this.isDead=true;
+			return;
+		}
+		
+		this.count=Math.ceil(this.summaryHitpoints/this.hitpoints);		
 	}
   };
   
@@ -211,20 +242,36 @@ $(document).ready(function($) {
   	getRandomFromRange:function(min, max) {
     	return (Math.random()*(max-min+1)^0)+min;
     },
-    getModificator:function(offense, defense) {
+    getCoefficient:function(offense, defense) {
     	var mod = offense-defense;
-		return mod<-28?-28:mod>60?60:mod;
+		if (mod < -28) mod = -28;
+		if (mod > 60) mod = 60;
+    
+    	var k = mod<0?0.025:0.05;
+    	return 1 + k*mod;
     },
-    getCoefficient:function(modificator) {
-    	var k = modificator<0?0.025:0.05;
-    	return 1 + k*modificator;
+    getDamage:function(offPars, defPars) {
+    	var dmgRangeReg=/^\s*\d+\s*-\s*\d+\s*$/;
+		var coef=this.getCoefficient(offPars.off, defPars.def);
+		var count=offPars.cnt;
+		
+    	if (dmgRangeReg.test(offPars.dmg)) {
+    		var dmgRange=this.parseDamage(offPars.dmg);
+    		return this.getRandomFromRange(
+    			_getDamage(dmgRange.min),
+    			_getDamage(dmgRange.max)
+    		);
+    	} 
+    	
+    	return _getDamage(+offPars.dmg)
+			
+		function _getDamage(dmg) {
+			return coef*dmg*count^0;
+		}
     },
-    getBaseDamage:function(damage,count) {
-    	return damage*count;
-    },
-    getDamage:function(damage, count, offense, defense) {
-    	return this.getBaseDamage(damage,count)
-			*this.getCoefficient(this.getModificator(offense, defense))^0;
+    parseDamage:function(damageStr) {
+    	var dmgArr=damageStr.split(/\s*-\s*/);
+    	return {min: +dmgArr[0], max: +dmgArr[1]};
     }
   };
                                   
@@ -246,11 +293,18 @@ $(document).ready(function($) {
       this.$container.empty();
     },
     
-    write:function(message) {
+    write:function(message, clazz) {
+    	clazz=clazz||'muted';
+    	
+    	msg={
+    		message:this.htmlUtils._getHtmlByTemplate('logMessagePartTemplate', {
+    			message:message,
+    			clazz:clazz
+    		})
+    	};
+    	
     	this.$log
-      	.prepend(this.htmlUtils
-        	._createElementByTemplate('logMessageTemplate', {message:message})
-        );
+		  	.prepend(this.htmlUtils._createElementByTemplate('logMessageTemplate', msg));
     }
   };
   
@@ -281,8 +335,11 @@ $(document).ready(function($) {
   
 	App.prototype={
 		attack:function(offFc, defFc) {
-			this.log.write(offFc.getParameter('name')+' attacks '+defFc.getParameter('name'));
+			this.log.write(offFc.getParameter('name')+' attacks '+defFc.getParameter('name'));				
+			var dmg=this.calculator.getDamage(offFc.getOffenseParameters(), defFc.getDefenseParameters());
 			
+			this.log.write(offFc.getParameter('name')+' hits '+dmg+' damage to '+defFc.getParameter('name'));			
+			defFc.pushDamage(dmg);
 		}
 	};
 	
