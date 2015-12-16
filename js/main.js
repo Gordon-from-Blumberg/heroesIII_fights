@@ -135,8 +135,23 @@ $(document).ready(function($) {
     };
     
     this.pushDamage=function(dmg) {
-    	this.log.write(unit.name+' got '+dmg+' hitpoints of damage');
-    	unit.pushDamage(dmg);
+        var message = this.log.composeMessage([
+            {msg:unit.name, cls:'primary'},
+            {msg:'got'},
+            {msg:dmg, cls:'warn'},
+            {msg:'hitpoints of damage '}
+        ]);
+        
+        var killedCount = unit.pushDamage(dmg);        
+        if (killedCount>0) {
+            message += this.log.composeMessage([
+                {msg:'('},
+                {msg:killedCount + (killedCount>1 ? ' were': ' was')+' killed', cls:'warn'},
+                {msg:')'}
+            ]);
+        }
+        
+    	this.log.write(message);    	
     	this._update(unit);
     };
 	
@@ -188,7 +203,7 @@ $(document).ready(function($) {
   
   //----------------------------------------
   var Unit = function(template) {
-	  this.htmlUtils=HtmlUtils.getInstance();
+	this.htmlUtils=HtmlUtils.getInstance();
 	  
     this.name=template.name||'Some creature';
 	this.offense=template.off||1;
@@ -218,16 +233,26 @@ $(document).ready(function($) {
   	set:function(parameter, value) {
 		this[parameter] = value;
 	},
+      
+	/**
+	* Description for pushDamage
+	* @method pushDamage
+	* @param {Integer} dmg
+	* @return {Integer} Count of killed creatures
+	*/
 	pushDamage:function(dmg) {
+        var countBeforeAttack = this.count;
 		this.summaryHitpoints-=dmg;
-		if (this.summaryHitoints<=0) {
-			this.summaryHitoints = 0;
+        
+		if (this.summaryHitpoints<=0) {
+			this.summaryHitpoints = 0;
 			this.count=0;
 			this.isDead=true;
-			return;
+			return countBeforeAttack;
 		}
 		
 		this.count=Math.ceil(this.summaryHitpoints/this.hitpoints);		
+        return countBeforeAttack - this.count;
 	}
   };
   
@@ -293,19 +318,30 @@ $(document).ready(function($) {
       this.$container.empty();
     },
     
-    write:function(message, clazz) {
-    	clazz=clazz||'muted';
-    	
-    	msg={
-    		message:this.htmlUtils._getHtmlByTemplate('logMessagePartTemplate', {
-    			message:message,
-    			clazz:clazz
-    		})
-    	};
-    	
-    	this.$log
-		  	.prepend(this.htmlUtils._createElementByTemplate('logMessageTemplate', msg));
-    }
+    composeMessage:function(tmplList) {
+        var logger=this;
+        return tmplList.map(function(tmpl) {
+          return logger._wrpaToSpan(tmpl.msg, tmpl.cls);
+      }).join(' ');
+    },
+    
+    write:function(message, cls) {
+        this.$log.prepend(
+            this.htmlUtils
+                ._createElementByTemplate(
+                    'logMessageTemplate',
+                    {message:this._wrpaToSpan(message, cls)})
+        );
+    },
+      
+    _wrpaToSpan:function(message, cls) {
+          return (cls == undefined || cls === '') ?
+              message :
+              this.htmlUtils._getHtmlByTemplate('logMessagePartTemplate', {
+                  message:message,
+                  cls:cls
+              });
+      }
   };
   
   // *** INIT ***
@@ -335,12 +371,38 @@ $(document).ready(function($) {
   
 	App.prototype={
 		attack:function(offFc, defFc) {
-			this.log.write(offFc.getParameter('name')+' attacks '+defFc.getParameter('name'));				
-			var dmg=this.calculator.getDamage(offFc.getOffenseParameters(), defFc.getDefenseParameters());
+            var offName = offFc.getParameter('name');
+            var defName = defFc.getParameter('name');
+            
+			this._writeAttack(offName, defName);				
+			var dmg=this.calculator.getDamage(
+                offFc.getOffenseParameters(),
+                defFc.getDefenseParameters()
+            );
 			
-			this.log.write(offFc.getParameter('name')+' hits '+dmg+' damage to '+defFc.getParameter('name'));			
+			this._writeHit(offName, defName, dmg);			
+            
 			defFc.pushDamage(dmg);
-		}
+		},
+        _writeAttack:function(offName, defName) {
+            this.log.write(offName+' attacks '+defName, 'muted');
+            /*this.log.write(
+                this.log.composeMessage([
+                    {msg:offName, cls:'primary'},
+                    {msg:'attacks'},
+                    {msg:defName, cls:'primary'}
+                ]));*/
+        },
+        _writeHit:function(offName, defName, dmg) {
+            this.log.write(
+                this.log.composeMessage([
+                    {msg:offName, cls:'primary'},
+                    {msg:'hits'},
+                    {msg:dmg, cls:'warn'},
+                    {msg:'damage to'},
+                    {msg:defName, cls:'primary'}
+                ]));
+        }
 	};
 	
 	new App;

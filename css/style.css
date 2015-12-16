@@ -106,10 +106,10 @@ p {margin:.5em 0}
 .log-container {
 }
 .log-window {
-	height:10em;
+	height:15em;
 	overflow:auto;
 	border-top:1px solid rgba(50,50,50,.6);	
-	background:#d8d8d8;/*#eaf0d8;*/
+	background:#eee;/*#eaf0d8;*/
 }
 .log {  
 	font-size:.8em;
@@ -121,8 +121,8 @@ p {margin:.5em 0}
 }
 .log-message+.log-message {margin-top:.4em}
 .muted {color:#666;}
-.primary {color:#5f8;}
-.warn {color:#dc3;}
+.primary {color:#09c;}
+.warn {color:#a50;}
 
 .templates {display:none}
 
