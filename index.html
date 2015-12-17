@@ -8,68 +8,69 @@
 </head>
 
 <body>
-  <div class="container" id="container">
-    <h1>
-      Heroes III fights
-    </h1>
-    <div id="formContainer" class="form-container row"></div>
-    <div id="logContainer" class="log-container row"></div>
-  </div>
+	<div class="container" id="container">
+		<h1>
+			Heroes III fights
+		</h1>
+		<div id="formContainer" class="form-container row"></div>
+		<div id="logContainer" class="log-container row"></div>
+	</div>
   
-  <!-- *** Templates *** -->
-  <div class="templates">
-    <template id="formTemplate">
-      <div class="col-6">
-        <form class="creature-form" id="creatureForm%i%" action="#">
+	<!-- *** Templates *** -->
+	<div class="templates">
+		<template id="formTemplate">
+			<div class="col-6">
+				<form class="creature-form" id="creatureForm%i%" action="#">
           
-		  <div class="form-group">
-            <label class="col-4 one-row-label" for="selectCreature%i%">
-              Select a creature
-            </label>
-            <div class="col-8">
-              <select id="selectCreature%i%" data-options="creatures" class="control short-anim">
-                %createCreaturesList(creatures)%
-              </select>
-            </div>
-          </div>
+					<div class="form-group">
+						<label class="col-4 one-row-label" for="selectCreature%i%">
+							Select a creature
+						</label>
+						<div class="col-8">
+							<select id="selectCreature%i%" class="control short-anim select-creature">
+								%createCreaturesList(creatures)%
+							</select>
+						</div>
+					</div>
 		  
-          %foreach(textInputs, textInput)%
+					%foreach(textInputs, textInput)%
 		  
-          <div class="form-group">
-            <div class="col-4 col-offset-4">
-              <div class="btn btn-attack short-anim" id="attack%i%">Attack!</div>
-            </div>
-          </div>
-        </form>
-      </div>
-    </template>
+					<div class="form-group">
+						<div class="col-4 col-offset-4">
+							<div class="btn btn-attack short-anim" id="attack%i%">Attack!</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</template>
     
-    <template id="textInputTemplate">
-      <div class="form-group">
-          <label class="col-4 one-row-label cap" for="%id%">%label%</label>
-          <div class="col-8">
-            <input type="text" class="text-input control short-anim" id="%id%" value="%value%"/>
-          </div>
-        </div>
-    </template>
+		<template id="textInputTemplate">
+			<div class="form-group">
+				<label class="col-4 one-row-label cap" for="%id%">%label%</label>
+				<div class="col-8">
+					<input type="text" class="text-input control short-anim" id="%id%" value="%value%"/>
+				</div>
+			</div>
+		</template>
     
-    <template id="optionTemplate">
-      <option value=%value%>%text%</option>
-    </template>
+		<template id="optionTemplate">
+			<option value=%value%>%text%</option>
+		</template>
     
-    <template id="logTemplate">
-      <div class="col-12">
-		<div class="log-window">
-			<div id="log" class="log"></div>
-		</div>        
-      </div>
-    </template>
+		<template id="logTemplate">
+			<div class="col-12">
+				<div class="log-window">
+					<div id="log" class="log"></div>
+				</div>        
+			</div>
+		</template>
     
-    <template id="logMessageTemplate">
-      <p class="log-message">%message%</p>
-    </template>
-    <template id="logMessagePartTemplate">
-    	<span class="%cls%">%message%</span>
-    </template>
-  </div>
+		<template id="logMessageTemplate">
+			<p class="log-message">%message%</p>
+		</template>
+		<template id="logMessagePartTemplate">
+			<span class="%cls%">%message%</span>
+		</template>
+	</div>
 </body>
+</html>
