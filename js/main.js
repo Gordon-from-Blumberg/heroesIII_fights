@@ -1,8 +1,28 @@
 $(document).ready(function($) {
 	var undefined;
 	var creatures = [
-		{name:'Pikeman', off:10, def:10, dmg:'2-3', spd:4, hp:10, cnt:14},
-		{name:'Goblin', off:8, def:5, dmg:'1-2', spd:5, hp:5, cnt:16}
+		{name:'Pikeman', off:4, def:5, dmg:'1-3', spd:4, hp:10, cnt:14},
+        {name:'Halberdier', off:6, def:5, dmg:'2-3', spd:5, hp:10, cnt:14},
+        {name:'Centaur', off:5, def:3, dmg:'2-3', spd:6, hp:8, cnt:14},
+        {name:'Centaur Captain', off:6, def:3, dmg:'2-3', spd:8, hp:10, cnt:14},
+        {name:'Gremlin', off:3, def:3, dmg:'1-2', spd:4, hp:4, cnt:16},
+        {name:'Master Gremlin', off:4, def:4, dmg:'1-2', spd:5, hp:4, cnt:16},
+        {name:'Skeleton', off:5, def:4, dmg:'1-3', spd:4, hp:6, cnt:12},
+        {name:'Skeleton Warrior', off:6, def:6, dmg:'1-3', spd:5, hp:6, cnt:12},
+        {name:'Troglodyte', off:4, def:3, dmg:'1-3', spd:4, hp:5, cnt:14},
+        {name:'Infernal Troglodyte', off:5, def:4, dmg:'1-3', spd:5, hp:6, cnt:14},
+        {name:'Imp', off:2, def:3, dmg:'1-2', spd:5, hp:4, cnt:15},
+        {name:'Familiar', off:4, def:4, dmg:'1-2', spd:7, hp:4, cnt:15},
+        {name:'Gnoll', off:3, def:5, dmg:'2-3', spd:4, hp:6, cnt:12},
+        {name:'Gnoll Marauder', off:4, def:6, dmg:'2-3', spd:5, hp:6, cnt:12},
+        {name:'Goblin', off:4, def:2, dmg:'1-2', spd:5, hp:5, cnt:15},
+		{name:'Hobgoblin', off:5, def:3, dmg:'1-2', spd:7, hp:5, cnt:15},
+        {name:'Pixie', off:2, def:2, dmg:'1-2', spd:7, hp:3, cnt:20},
+        {name:'Sprite', off:2, def:2, dmg:'1-3', spd:9, hp:3, cnt:20},
+        {name:'Nymph', off:5, def:2, dmg:'1-2', spd:6, hp:4, cnt:16},
+        {name:'Oceanida', off:6, def:2, dmg:'1-3', spd:8, hp:4, cnt:16},
+        {name:'Peasant', off:1, def:1, dmg:1, spd:3, hp:1, cnt:25},
+        {name:'Halfling', off:4, def:2, dmg:'1-3', spd:5, hp:4, cnt:15},
 	];
 	creatures.get=function(name) {
 		for (var i=0, size=this.length; i<size; i++) {
@@ -54,8 +74,8 @@ $(document).ready(function($) {
     foreach:function(list, method) {
     	var self = this;
     	return list.reduce(function(result, item) {
-      	return result + self[method](item)
-      }, '');
+            return result + self[method](item)
+        }, '');
     },
           
     textInput: function(params) {
@@ -63,28 +83,28 @@ $(document).ready(function($) {
     },
           
     createForm: function(containerId, params) {
-      var self = this;
-      var form = this._createElementByTemplate('formTemplate', params);
-     	form.find('select[data-options]')
-        .each(function() {
-          $this = $(this);
-          self._createOptions($this, params[$this.attr('data-options')]);
-        });
-        
-        return form.appendTo('#'+containerId);
+        return this._createElementByTemplate('formTemplate', params).appendTo('#'+containerId);
     },
       
-    _createOptions: function($select, options) {
-      if (options.length === 0) return;
-      var html='';
-      for (var i = 0, size = options.length; i<size; i++) {
-        html += this._replace($('#optionTemplate').html(), options[i]);
-      }
-      $select.html(html);
+    createCreaturesList: function(creatures) {
+        var template = $('#optionTemplate').html();
+        var optionTmpl = {value:'none', text:'No available creature'};
+        
+        if (creatures.length === 0) {
+            return this._replace(template, optionTmpl);
+        }
+        
+        var result='';
+        for (var i=0, size=creatures.length; i < size; i++) {
+            optionTmpl.value = creatures[i].name;
+            optionTmpl.text = creatures[i].name;
+            result += this._replace(template, optionTmpl);
+        }
+        return result;
     },
     
     capitalize: function(input) {
-      return input.charAt(0).toUpperCase() + input.slice(1);
+        return input.charAt(0).toUpperCase() + input.slice(1);
     }
   };
   
@@ -100,7 +120,7 @@ $(document).ready(function($) {
     var params = {
     	i:this.index,
 		textInputs:unit.getTextInputTemplates(this.index),
-		creatures:[]
+		creatures:creatures
     };
     
     this.$form = this.htmlUtils.createForm('formContainer', params).find('#creatureForm'+this.index);
@@ -201,7 +221,7 @@ $(document).ready(function($) {
             }
         }
         
-        if (unit.isDead) this._setDead(unit);
+        unit.isDead ? this._setDead(unit) : this._setAlive(unit);
         
         function getInput(parameter) {
             return $('#creature'+self.htmlUtils.capitalize(parameter)+self.index)
@@ -222,14 +242,14 @@ $(document).ready(function($) {
 	this.htmlUtils=HtmlUtils.getInstance();
     template = template || {};
       
-    this.name=template.name||'Some creature';
+    this.name=template.name||'Peasant';
 	this.offense=template.off||1;
 	this.defense=template.def||1;
 	this.damage=template.dmg||'1';
-	this.speed=template.spd||1;
+	this.speed=template.spd||3;
 	this.hitpoints=template.hp||1;
 	this.shorts=template.shts||0;
-	this.baseCount=template.bsCnt||1;
+	this.baseCount=template.bsCnt||25;
 	this.count=template.cnt||this.baseCount;
 	
     this.currentHitpoints = this.hitpoints;

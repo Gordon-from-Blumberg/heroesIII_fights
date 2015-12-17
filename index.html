@@ -28,7 +28,7 @@
             </label>
             <div class="col-8">
               <select id="selectCreature%i%" data-options="creatures" class="control short-anim">
-                <option value="none">No available creature</option>
+                %createCreaturesList(creatures)%
               </select>
             </div>
           </div>
@@ -53,7 +53,7 @@
         </div>
     </template>
     
-    <template id="optionTemaplate">
+    <template id="optionTemplate">
       <option value=%value%>%text%</option>
     </template>
     
