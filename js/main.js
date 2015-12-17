@@ -1,7 +1,7 @@
 $(document).ready(function($) {
 	var undefined;
 	var creatures = [
-		{name:'Spearman', off:10, def:10, dmg:'2-3', spd:4, hp:10, cnt:14},
+		{name:'Pikeman', off:10, def:10, dmg:'2-3', spd:4, hp:10, cnt:14},
 		{name:'Goblin', off:8, def:5, dmg:'1-2', spd:5, hp:5, cnt:16}
 	];
 	creatures.get=function(name) {
@@ -103,11 +103,19 @@ $(document).ready(function($) {
 		creatures:[]
     };
     
-    this.$form = this.htmlUtils.createForm('formContainer', params);
+    this.$form = this.htmlUtils.createForm('formContainer', params).find('#creatureForm'+this.index);
     
-    this.setParameter=function(parameter, value) {
+    /**
+    * Sets new value for specified parameter
+    * @method setParameter
+    * @param {String} Parameter name
+    * @param {String | Number} New value for parameter
+    * @param {Boolean} Flag to update form: if true form will be updated, and will not overwise
+    */
+    this.setParameter=function(parameter, value, toUpdate) {
     	unit.set(parameter, value);
-      this.log.write('For unit '+unit.name+' is set parameter '+parameter+' = '+value);
+        this.log.write('For unit '+unit.name+' is set parameter '+parameter+' = '+value);
+        if (toUpdate === true) this._update(unit, parameter);
     };
 	this.getParameter=function(parameter) {
 		return unit[parameter];
@@ -171,10 +179,9 @@ $(document).ready(function($) {
     	this.$form.change(onFormChange);
       
       function onFormChange(e) {
-      	var $target = $(e.target);
       	var parameter = getParameter(e.target.id);
         
-        self.setParameter(parameter, $target.val());
+        self.setParameter(parameter, $(e.target).val());
         
         function getParameter(id) {
         	return id.match(/creature([a-zA-Z]+)\d+/)[1].toLowerCase();
@@ -185,37 +192,48 @@ $(document).ready(function($) {
     _update: function(unit, parameter) {
     	var self =this;
     	if (parameter != undefined) {
-      	getInput(parameter).val(unit[parameter]);
-        return;
-      }
-      
-    	for (var par in unit) {
-      	if (unit.hasOwnProperty(par)) {        	
-          	getInput(par).val(unit[par]);
+            getInput(parameter).val(unit[parameter]);
+        } else {      
+            for (var par in unit) {
+                if (unit.hasOwnProperty(par)) {        	
+                    getInput(par).val(unit[par]);
+                }
+            }
         }
-      }
+        
+        if (unit.isDead) this._setDead(unit);
+        
+        function getInput(parameter) {
+            return $('#creature'+self.htmlUtils.capitalize(parameter)+self.index)
+        }
+    },
       
-      function getInput(parameter) {
-      	return $('#creature'+self.htmlUtils.capitalize(parameter)+self.index)
+      _setDead: function(unit) {
+          this.$form.addClass('creature-form-dead');
+      },
+      
+      _setAlive: function(unit) {
+          this.$form.removeClass('creature-form-dead');
       }
-    }
   };
   
   //----------------------------------------
   var Unit = function(template) {
 	this.htmlUtils=HtmlUtils.getInstance();
-	  
+    template = template || {};
+      
     this.name=template.name||'Some creature';
 	this.offense=template.off||1;
 	this.defense=template.def||1;
-	this.damage=template.dmg||'1-1';
+	this.damage=template.dmg||'1';
 	this.speed=template.spd||1;
 	this.hitpoints=template.hp||1;
 	this.shorts=template.shts||0;
 	this.baseCount=template.bsCnt||1;
 	this.count=template.cnt||this.baseCount;
 	
-	this.summaryHitpoints=this.hitpoints*this.count;
+    this.currentHitpoints = this.hitpoints;
+	this.summaryHitpoints = this.hitpoints * this.count;
 	this.isDead=false;
   };
   Unit.prototype={
@@ -232,12 +250,16 @@ $(document).ready(function($) {
 	},
   	set:function(parameter, value) {
 		this[parameter] = value;
+        if (parameter == 'hitpoints' || parameter == 'count') {
+            this.summaryHitpoints = this.hitpoints * this.count;
+            this.isDead = this.summaryHitpoints === 0;
+        }
 	},
       
 	/**
-	* Description for pushDamage
+	* Method for pushing damage to unit
 	* @method pushDamage
-	* @param {Integer} dmg
+	* @param {Integer} Pushing damage
 	* @return {Integer} Count of killed creatures
 	*/
 	pushDamage:function(dmg) {
@@ -351,7 +373,7 @@ $(document).ready(function($) {
 	this.calculator=Calculator.getInstance();
 	
 	this.units = [
-		new Unit(creatures.get('spearman')),
+		new Unit(creatures.get('pikeman')),
 		new Unit(creatures.get('goblin'))
 	];
 	
@@ -383,6 +405,10 @@ $(document).ready(function($) {
 			this._writeHit(offName, defName, dmg);			
             
 			defFc.pushDamage(dmg);
+            
+            if (defFc.getParameter('isDead')) {
+                this._writeWon(offName);
+            }
 		},
         _writeAttack:function(offName, defName) {
             this.log.write(offName+' attacks '+defName, 'muted');
@@ -402,6 +428,9 @@ $(document).ready(function($) {
                     {msg:'damage to'},
                     {msg:defName, cls:'primary'}
                 ]));
+        },
+        _writeWon: function(winnerName) {
+            this.log.write(winnerName+' won!', 'success');
         }
 	};
 	

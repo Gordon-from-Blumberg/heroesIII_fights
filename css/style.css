@@ -67,6 +67,9 @@ p {margin:.5em 0}
 .creature-form {
   padding:0 12px;
 }
+.creature-form-dead {
+    
+}
 
 .control {
   width:100%;
@@ -82,6 +85,15 @@ p {margin:.5em 0}
 .text-input {
   display:block;  
 }
+
+.creature-form-dead .control {
+    border-color: rgba(200,50,50,.8);
+    color:#b33;
+}
+.creature-form-dead label {
+    color:#b33;
+}
+
 .btn {
   display:inline-block;
   padding:4px 8px;
@@ -123,6 +135,7 @@ p {margin:.5em 0}
 .muted {color:#666;}
 .primary {color:#09c;}
 .warn {color:#a50;}
+.success {color:#0b2;}
 
 .templates {display:none}
 
