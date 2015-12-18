@@ -1,7 +1,8 @@
 $(document).ready(function($) {
 	var undefined;
 	var creatures = [
-		{name:'Pikeman', off:4, def:5, dmg:'1-3', spd:4, hp:10, cnt:14},
+		{name:'Peasant', off:1, def:1, dmg:1, spd:3, hp:1, cnt:25},
+        {name:'Pikeman', off:4, def:5, dmg:'1-3', spd:4, hp:10, cnt:14},
         {name:'Halberdier', off:6, def:5, dmg:'2-3', spd:5, hp:10, cnt:14},
         {name:'Centaur', off:5, def:3, dmg:'2-3', spd:6, hp:8, cnt:14},
         {name:'Centaur Captain', off:6, def:3, dmg:'2-3', spd:8, hp:10, cnt:14},
@@ -21,7 +22,6 @@ $(document).ready(function($) {
         {name:'Sprite', off:2, def:2, dmg:'1-3', spd:9, hp:3, cnt:20},
         {name:'Nymph', off:5, def:2, dmg:'1-2', spd:6, hp:4, cnt:16},
         {name:'Oceanida', off:6, def:2, dmg:'1-3', spd:8, hp:4, cnt:16},
-        {name:'Peasant', off:1, def:1, dmg:1, spd:3, hp:1, cnt:25},
         {name:'Halfling', off:4, def:2, dmg:'1-3', spd:5, hp:4, cnt:15},
 	];
 	creatures.get=function(name) {
@@ -112,9 +112,13 @@ $(document).ready(function($) {
 	var FormComponent = function(unit) {
 		if (FormComponent.index == undefined) FormComponent.index=0;   
     
+        unit = unit || new Unit();
+        
 		this.htmlUtils=HtmlUtils.getInstance();
 		this.calculator=Calculator.getInstance();
 		this.log=Logger.getInstance();
+        
+        this._listeners={};
     
 		this.index = ++FormComponent.index;
 		var params = {
@@ -239,7 +243,29 @@ $(document).ready(function($) {
       
 		_setAlive: function(unit) {
 			this.$form.removeClass('creature-form-dead');
-		}
+		},
+        
+        addListener: function(type, handler) {
+            if (this._listeners[type] == undefined) this._listeners[type] = [];
+            this._listeners[type].push(handler)
+        },        
+        removeListener: function(type, handler) {
+            var listeners = this._listeners[type];
+            if (listeners == undefined) return;
+            
+            var index = listeners.indexOf(handler);
+            if (index == -1) return;
+            
+            listeners.splice(index, 1);
+        },
+        trigger: function(type, event) {
+            if (this._listeners[type] == undefined) return;
+            
+            var listeners = this._listeners[type];
+            for (var i = 0, size = listeners.length; i < size; i++) {
+                listeners[i](event);
+            }
+        }
 	};
   
   //----------------------------------------
@@ -348,7 +374,7 @@ $(document).ready(function($) {
 			}
 		},
 		parseDamage:function(damageStr) {
-			var dmgArr=damageStr.split(/\s*-\s*/);
+			var dmgArr = damageStr.split(/\s*-\s*/);
 			return {min: +dmgArr[0], max: +dmgArr[1]};
 		}
 	};
@@ -404,8 +430,8 @@ $(document).ready(function($) {
 		this.calculator = Calculator.getInstance();
 	
 		this.units = [
-			new Unit(creatures.get('pikeman')),
-			new Unit(creatures.get('goblin'))
+			new Unit(),
+			new Unit()
 		];
 	
 		this.formComponents = this.units.map(function(unit) {
