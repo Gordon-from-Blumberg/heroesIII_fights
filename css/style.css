@@ -95,24 +95,40 @@ p {margin:.5em 0}
 }
 
 .btn {
-  display:inline-block;
-  padding:4px 8px;
-  background:#eee;/*#f0f5c8;*/
-  border:1px solid rgba(50,50,50,.6);
-  border-radius:6px;
-  text-align:center;
-  cursor:pointer;
+    display:inline-block;
+    padding:4px 8px;
+    background:#eee;/*#f0f5c8;*/
+    border:1px solid rgba(50,50,50,.6);
+    border-radius:6px;
+    font: inherit;
+    text-align:center;
+    cursor:pointer;
 }
 .btn:hover {
-  background:#ddd;/*#e0e5b8;*/
-  box-shadow:rgba(57,124,154,.5) 0 0 2px;
+    background:#ddd;/*#e0e5b8;*/
+    box-shadow:rgba(57,124,154,.5) 0 0 2px;
 }
 .btn:active {
-  background:#c8c8c8;
-  border-top-width:2px;
-  border-left-width:2px;
-  padding-bottom:3px;
-  padding-right:7px;
+    background:#c8c8c8;
+    border-top-width:2px;
+    border-left-width:2px;
+    padding-bottom:3px;
+    padding-right:7px;
+    outline: none;
+}
+.btn:focus {
+    outline: none
+}
+.btn:disabled,
+.btn:disabled:hover,
+.btn:disabled:active,
+.btn:disabled:focus {
+    padding:4px 8px;
+    background: #c8c8c8;
+    border:1px solid rgba(50,50,50,.5);
+    color: #777;
+    box-shadow: none;
+    cursor: default;
 }
 
 .log-container {

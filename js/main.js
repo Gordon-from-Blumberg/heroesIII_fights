@@ -132,16 +132,16 @@ $(document).ready(function($) {
 		/**
 		* Sets new value for specified parameter
 		* @method setParameter
-		* @param {String} Parameter name
-		* @param {String | Number} New value for parameter
-		* @param {Boolean} Flag to update form: if true form will be updated, and will not overwise
+		* @param {String} parameter Parameter name
+		* @param {String | Number} value New value for parameter
+		* @param {Boolean} toUpdate Flag to update form: if true form will be updated, and will not overwise
 		*/
-		this.setParameter=function(parameter, value, toUpdate) {
+		this.setParameter = function(parameter, value, toUpdate) {
 			unit.set(parameter, value);
-			this.log.write('For unit '+unit.name+' is set parameter '+parameter+' = '+value);
+			this.log.write('For unit ' + unit.name + ' is set parameter ' + parameter + ' = ' + value);
 			if (toUpdate === true) this._update(unit, parameter);
 		};
-		this.getParameter=function(parameter) {
+		this.getParameter = function(parameter) {
 			return unit[parameter];
 		};
 		this.setUnit = function(newUnit) {
@@ -149,37 +149,32 @@ $(document).ready(function($) {
 			this._update(unit);
 		};
 		
-		this.attack=function() {
-			var targetFC = fcs.getAnotherFc(this);
-			this.log.write(unit.name+' attacks '+ta)
-		};
-	
-		this.getOffenseParameters=function() {
+		this.getOffenseParameters = function() {
 			return {
-				dmg:unit.damage,
-				cnt:unit.count,
-				off:unit.offense
+				dmg: unit.damage,
+				cnt: unit.count,
+				off: unit.offense
 			};
 		};
 		
-		this.getDefenseParameters=function() {
-			return {def:unit.defense};
+		this.getDefenseParameters = function() {
+			return {def: unit.defense};
 		};
 		
-		this.pushDamage=function(dmg) {
+		this.pushDamage = function(dmg) {
 			var message = this.log.composeMessage([
-				{msg:unit.name, cls:'primary'},
-				{msg:'got'},
-				{msg:dmg, cls:'warn'},
-				{msg:'hitpoints of damage '}
+				{msg: unit.name, cls: 'primary'},
+				{msg: 'got'},
+				{msg: Math.min(dmg, unit.summaryHitpoints), cls: 'warn'},
+				{msg: 'hitpoints of damage '}
 			]);
 			
 			var killedCount = unit.pushDamage(dmg);        
-			if (killedCount>0) {
+			if (killedCount > 0) {
 				message += this.log.composeMessage([
-					{msg:'('},
-					{msg:killedCount + (killedCount>1 ? ' were': ' was')+' killed', cls:'warn'},
-					{msg:')'}
+					{msg: '('},
+					{msg: killedCount + (killedCount > 1 ? ' were': ' was') + ' killed', cls: 'warn'},
+					{msg: ')'}
 				]);
 			}
 			
@@ -217,6 +212,21 @@ $(document).ready(function($) {
 				self.setUnit(new Unit(creatures.get($(this).val())));
 			}
 		},
+        
+        addAttackHandler: function(targetFc) {   
+            var self = this;
+            this.$form.find('.btn-attack').click(function() {
+                if (check($(this))) return;
+                
+                self.attack(targetFc);
+                
+                function check($this) {
+                    return $this.attr('disabled')
+                        || self.getParameter('isDead')
+                        || targetFc.getParameter('isDead');
+                }
+            });  
+        },
 		
 		_update: function(unit, parameter) {
 			var self =this;
@@ -239,12 +249,48 @@ $(document).ready(function($) {
       
 		_setDead: function(unit) {
 			this.$form.addClass('creature-form-dead');
+            $('.btn-attack').attr('disabled', 'disabled');
 		},
       
 		_setAlive: function(unit) {
 			this.$form.removeClass('creature-form-dead');
+            this.$form.find('.btn-attack').removeAttr('disabled');
 		},
         
+        attack: function(targetFc) {
+            var attFc = this;
+            var offName = this.getParameter('name');
+            var defName = targetFc.getParameter('name');
+            
+            this.log.write(offName + ' attacks ' + defName, 'muted');
+            
+			var dmg = this.calculator.getDamage(
+                attFc.getOffenseParameters(),
+                targetFc.getDefenseParameters()
+            );
+			
+			writeHit(offName, defName, dmg);			
+            
+			targetFc.pushDamage(dmg);
+            
+            if (targetFc.getParameter('isDead')) {
+                this.log.write(offName+' won!', 'success');
+            }
+            
+            function writeHit(offName, defName, dmg) {
+                attFc.log.write(
+                    attFc.log.composeMessage([
+                        {msg: offName, cls: 'primary'},
+                        {msg: 'hits'},
+                        {msg: dmg, cls: 'warn'},
+                        {msg: 'damage to'},
+                        {msg: defName, cls: 'primary'}
+                    ])
+                );
+            }
+        },
+        
+        // Pattern "Observer"
         addListener: function(type, handler) {
             if (this._listeners[type] == undefined) this._listeners[type] = [];
             this._listeners[type].push(handler)
@@ -263,7 +309,7 @@ $(document).ready(function($) {
             
             var listeners = this._listeners[type];
             for (var i = 0, size = listeners.length; i < size; i++) {
-                listeners[i](event);
+                listeners[i].call(this, event);
             }
         }
 	};
@@ -437,52 +483,12 @@ $(document).ready(function($) {
 		this.formComponents = this.units.map(function(unit) {
 			return new FormComponent(unit);
 		});
-	
-		$('.btn-attack').click(onAttack);
-	
-		function onAttack(e) {
-			var index = +e.target.id.replace('attack','');
-			var targetIndex = index == 1 ? 2 : 1;
-		
-			app.attack(app.formComponents[index - 1], app.formComponents[targetIndex - 1]);
-		}
+        
+        this.formComponents[0].addAttackHandler(this.formComponents[1]);
+        this.formComponents[1].addAttackHandler(this.formComponents[0]);        
 	};
   
 	App.prototype = {
-		attack: function(offFc, defFc) {
-            var offName = offFc.getParameter('name');
-            var defName = defFc.getParameter('name');
-            
-			this._writeAttack(offName, defName);				
-			var dmg=this.calculator.getDamage(
-                offFc.getOffenseParameters(),
-                defFc.getDefenseParameters()
-            );
-			
-			this._writeHit(offName, defName, dmg);			
-            
-			defFc.pushDamage(dmg);
-            
-            if (defFc.getParameter('isDead')) {
-                this._writeWon(offName);
-            }
-		},
-        _writeAttack:function(offName, defName) {
-            this.log.write(offName+' attacks '+defName, 'muted');
-        },
-        _writeHit:function(offName, defName, dmg) {
-            this.log.write(
-                this.log.composeMessage([
-                    {msg:offName, cls:'primary'},
-                    {msg:'hits'},
-                    {msg:dmg, cls:'warn'},
-                    {msg:'damage to'},
-                    {msg:defName, cls:'primary'}
-                ]));
-        },
-        _writeWon: function(winnerName) {
-            this.log.write(winnerName+' won!', 'success');
-        }
 	};
 	
 	new App;
