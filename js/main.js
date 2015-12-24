@@ -153,7 +153,8 @@ $(document).ready(function($) {
 			return {
 				dmg: unit.damage,
 				cnt: unit.count,
-				off: unit.offense
+				off: unit.offense,
+                dmgType: unit.damageType
 			};
 		};
 		
@@ -185,7 +186,7 @@ $(document).ready(function($) {
 		this.addHandlers();
 	};
 	FormComponent.prototype = {
-		createInputTemplateModel:function(name, value, index) {
+        createInputTemplateModel:function(name, value, index) {
 			return {
 				id: 'creature' + name + index,
 				label: name,
@@ -258,12 +259,13 @@ $(document).ready(function($) {
             this.$form.find('.btn-attack').removeAttr('disabled');
 		},
         
-        attack: function(targetFc) {
+        attack: function(targetFc, isCounterattack) {
             var attFc = this;
             var offName = this.getParameter('name');
             var defName = targetFc.getParameter('name');
             
-            this.log.write(offName + ' attacks ' + defName, 'muted');
+            var attacksStr = isCounterattack ? ' counterattacks ' : ' attacks ';
+            this.log.write(offName + attacksStr + defName, 'muted');
             
 			var dmg = this.calculator.getDamage(
                 attFc.getOffenseParameters(),
@@ -276,6 +278,10 @@ $(document).ready(function($) {
             
             if (targetFc.getParameter('isDead')) {
                 this.log.write(offName+' won!', 'success');
+            } else {
+                if (!isCounterattack && this.getParameter('getsCounterattack')) {
+                    targetFc.attack(this, true);
+                }
             }
             
             function writeHit(offName, defName, dmg) {
@@ -317,25 +323,28 @@ $(document).ready(function($) {
   
   //----------------------------------------
 	var Unit = function(template) {
-		this.htmlUtils=HtmlUtils.getInstance();
+		this.htmlUtils = HtmlUtils.getInstance();
 		template = template || {};
 		  
-		this.name=template.name||'Peasant';
-		this.offense=template.off||1;
-		this.defense=template.def||1;
-		this.damage=template.dmg||'1';
-		this.speed=template.spd||3;
-		this.hitpoints=template.hp||1;
-		this.shorts=template.shts||0;
-		this.baseCount=template.bsCnt||25;
-		this.count=template.cnt||this.baseCount;
+		this.name = template.name || 'Peasant';
+		this.offense = template.off || 1;
+		this.defense = template.def || 1;
+		this.damage = template.dmg || '1';
+        this.damageType = 'random';
+		this.speed = template.spd || 3;
+		this.hitpoints = template.hp || 1;
+		this.shorts = template.shts || 0;
+		this.baseCount = template.bsCnt || 25;
+		this.count = template.cnt || this.baseCount;
 		
 		this.currentHitpoints = this.hitpoints;
 		this.summaryHitpoints = this.hitpoints * this.count;
-		this.isDead=false;
+		this.isDead = false;
+        
+        this.getsCounterattack = true;
 	};
 	Unit.prototype={
-		fieldsForDisplay:['name','offense','defense','damage','speed','shorts','hitpoints','count'],
+        fieldsForDisplay:['name','offense','defense','damage','speed','shorts','hitpoints','count'],
 		getTextInputTemplates:function(index) {
 			var self=this;
 			return this.fieldsForDisplay.map(function(field) {
@@ -402,26 +411,37 @@ $(document).ready(function($) {
 			return 1 + k * mod;
 		},
 		getDamage:function(offPars, defPars) {
-			var dmgRangeReg=/^\s*\d+\s*-\s*\d+\s*$/;
 			var coef=this.getCoefficient(offPars.off, defPars.def);
 			var count=offPars.cnt;
 			
-			if (dmgRangeReg.test(offPars.dmg)) {
-				var dmgRange=this.parseDamage(offPars.dmg);
-				return this.getRandomFromRange(
-					_getDamage(dmgRange.min),
-					_getDamage(dmgRange.max)
-				);
-			} 
-			
-			return _getDamage(+offPars.dmg)
+			var dmgRange=this.parseDamage(offPars.dmg);
+            
+            switch(offPars.dmgType) {
+                case 'random':
+                    return this.getRandomFromRange(
+                        _getDamage(dmgRange.min),
+                        _getDamage(dmgRange.max)
+                    );
+                    
+                case 'min':
+                    return _getDamage(dmgRange.min);
+                    
+                case 'max':
+                    return _getDamage(dmgRange.max);
+                    
+                case 'avg':
+                    return _getDamage((dmgRange.min + dmgRange.max) / 2);
+            }
 				
 			function _getDamage(dmg) {
-				return coef*dmg*count^0;
+				return coef*dmg*count^0 || 1;
 			}
 		},
 		parseDamage:function(damageStr) {
-			var dmgArr = damageStr.split(/\s*-\s*/);
+			var dmgRangeReg=/^\s*\d+\s*-\s*\d+\s*$/;
+            var dmgArr = dmgRangeReg.test(damageStr) ?
+                damageStr.split(/\s*-\s*/) :
+                [damageStr, damageStr];
 			return {min: +dmgArr[0], max: +dmgArr[1]};
 		}
 	};
