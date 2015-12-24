@@ -138,7 +138,7 @@ $(document).ready(function($) {
 		*/
 		this.setParameter = function(parameter, value, toUpdate) {
 			unit.set(parameter, value);
-			this.log.write('For unit ' + unit.name + ' is set parameter ' + parameter + ' = ' + value);
+			this.log.write('Parameter ' + parameter + ' = ' + value + ' is set for unit ' + unit.name, 'muted');
 			if (toUpdate === true) this._update(unit, parameter);
 		};
 		this.getParameter = function(parameter) {
@@ -210,6 +210,7 @@ $(document).ready(function($) {
 			
 			function onSelectUnit() {
 				self.setUnit(new Unit(creatures.get($(this).val())));
+                self.log.write('Selected ' + self.getParameter('name'), 'muted');
 			}
 		},
         
