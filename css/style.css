@@ -4,7 +4,8 @@ html, body, div, p {
   padding:0
 }
 body {
-  font-family:Calibri, sans-serif;
+    font-family: Calibri, sans-serif;
+    font-size: 15px;
 }
 h1,h2,h3,h4,h5,h6 {text-align:center;}
 p {margin:.5em 0}
@@ -92,6 +93,16 @@ p {margin:.5em 0}
 }
 .creature-form-dead label {
     color:#b33;
+}
+
+.radio-box-inline .radio-label {
+    display: inline-block;
+}
+.radio-box-inline .radio-label+.radio-label {
+    margin-left: 5px;
+}
+input[type="radio"] {
+    margin: 0;
 }
 
 .btn {

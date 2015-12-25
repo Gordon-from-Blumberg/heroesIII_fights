@@ -24,9 +24,9 @@ $(document).ready(function($) {
         {name:'Oceanida', off:6, def:2, dmg:'1-3', spd:8, hp:4, cnt:16},
         {name:'Halfling', off:4, def:2, dmg:'1-3', spd:5, hp:4, cnt:15},
 	];
-	creatures.get=function(name) {
-		for (var i=0, size=this.length; i<size; i++) {
-			if (this[i].name.toLowerCase()==name.toLowerCase()) return this[i];
+	creatures.get = function(name) {
+		for (var i = 0, size = this.length; i < size; i++) {
+			if (this[i].name.toLowerCase() == name.toLowerCase()) return this[i];
 		}
 		return null;
 	};
@@ -43,18 +43,18 @@ $(document).ready(function($) {
 			var reg = /%([\w.()_,\s]+)%/g;    
 			return htmlTemplate.replace(reg, function(m, property) {
 				var reMethod = /^([\w._]+)\(([\w._,\s]*)\)$/;
-				var match=property.match(reMethod);
+				var match = property.match(reMethod);
 				return match ?
 					self._callMethod(match, params) :
 					params[property];
 		  });          
 		},
     
-		_getHtmlByTemplate:function(templateId, params) {
-			return this._replace($('#'+templateId).html(), params);
+		_getHtmlByTemplate: function(templateId, params) {
+			return this._replace($('#' + templateId).html(), params);
 		},
 		
-		_createElementByTemplate:function(templateId, params) {
+		_createElementByTemplate: function(templateId, params) {
 			return $(this._getHtmlByTemplate(templateId, params));
 		},
 		
@@ -105,29 +105,34 @@ $(document).ready(function($) {
 		
 		capitalize: function(input) {
 			return input.charAt(0).toUpperCase() + input.slice(1);
-		}
+		},
+        
+        radioInput: function(params) {
+            return this._getHtmlByTemplate('radioTemplate', params);
+        }
 	};
   
   //------------------------------
 	var FormComponent = function(unit) {
-		if (FormComponent.index == undefined) FormComponent.index=0;   
+		if (FormComponent.index == undefined) FormComponent.index = 0;   
     
         unit = unit || new Unit();
         
-		this.htmlUtils=HtmlUtils.getInstance();
-		this.calculator=Calculator.getInstance();
-		this.log=Logger.getInstance();
+		this.htmlUtils = HtmlUtils.getInstance();
+		this.calculator = Calculator.getInstance();
+		this.log = Logger.getInstance();
         
-        this._listeners={};
+        this._listeners = {};
     
 		this.index = ++FormComponent.index;
 		var params = {
-			i:this.index,
-			textInputs:unit.getTextInputTemplates(this.index),
-			creatures:creatures
+			i: this.index,
+			textInputs: unit.getTextInputTemplates(this.index),
+			creatures: creatures,
+            damageTypes: this.calculator.getDamageTypesTemplate(this.index)
 		};
     
-		this.$form = this.htmlUtils.createForm('formContainer', params).find('#creatureForm'+this.index);
+		this.$form = this.htmlUtils.createForm('formContainer', params).find('#creatureForm' + this.index);
     
 		/**
 		* Sets new value for specified parameter
@@ -186,18 +191,19 @@ $(document).ready(function($) {
 		this.addHandlers();
 	};
 	FormComponent.prototype = {
-        createInputTemplateModel:function(name, value, index) {
+        /*createInputTemplateModel:function(name, value) {
 			return {
-				id: 'creature' + name + index,
+				id: 'creature' + name + this.index,
 				label: name,
 				value: value
 			}
-		},
+		},*/
     
 		addHandlers: function() {
 			var self=this;
 			this.$form.find('.text-input').change(onParameterChange);
 			this.$form.find('.select-creature').change(onSelectUnit);
+            this.$form.find('[name=damageType' + this.index + ']').change(onDamageTypeChange);
 		  
 			function onParameterChange(e) {
 				var parameter = getParameter(this.id);
@@ -213,6 +219,10 @@ $(document).ready(function($) {
 				self.setUnit(new Unit(creatures.get($(this).val())));
                 self.log.write('Selected ' + self.getParameter('name'), 'muted');
 			}
+            
+            function onDamageTypeChange() {
+                self.setParameter('damageType', $(this).val());
+            }
 		},
         
         addAttackHandler: function(targetFc) {   
@@ -231,9 +241,9 @@ $(document).ready(function($) {
         },
 		
 		_update: function(unit, parameter) {
-			var self =this;
+			var self = this;
 			if (parameter != undefined) {
-				getInput(parameter).val(unit[parameter]);
+                getInput(parameter).val(unit[parameter]);
 			} else {      
 				for (var par in unit) {
 					if (unit.hasOwnProperty(par)) {        	
@@ -241,6 +251,8 @@ $(document).ready(function($) {
 					}
 				}
 			}
+            
+            $('#dmgType' + unit.damageType.toUpperCase() + this.index).attr('checked', 'checked');
 			
 			unit.isDead ? this._setDead(unit) : this._setAlive(unit);
 			
@@ -392,11 +404,28 @@ $(document).ready(function($) {
 		return Calculator.instance;
 	};
   
-	Calculator.prototype={
-		getRandomFromRange:function(min, max) {
-			return (Math.random()*(max-min+1)^0)+min;
+	Calculator.prototype = {
+        damageTypes: {
+            random: function(dmgRange, k) {
+                return this.getRandomFromRange(
+                    k * dmgRange.min ^ 0,
+                    k * dmgRange.max ^ 0                    
+                );
+            },
+            min: function(dmgRange, k) {
+                return k * dmgRange.min;
+            },
+            max: function(dmgRange, k) {
+                return k * dmgRange.max;
+            },
+            avg: function(dmgRange, k) {
+                return k * (dmgRange.min + dmgRange.max) / 2;
+            }
+        },
+		getRandomFromRange: function(min, max) {
+			return (Math.random() * (max - min + 1) ^ 0) + min;
 		},
-		getCoefficient:function(offense, defense) {
+		getCoefficient: function(offense, defense) {
 			var MIN_MODIFICATOR = -28;
 			var MAX_MODIFICATOR = 60;
 			var INCREASE_DAMAGE_COEFFICIENT = 0.05;
@@ -410,40 +439,45 @@ $(document).ready(function($) {
 			var k = mod < 0 ? DECREASE_DAMAGE_COEFFICIENT : INCREASE_DAMAGE_COEFFICIENT;
 			return 1 + k * mod;
 		},
-		getDamage:function(offPars, defPars) {
-			var coef=this.getCoefficient(offPars.off, defPars.def);
-			var count=offPars.cnt;
+		getDamage: function(offPars, defPars) {
+			var coef = this.getCoefficient(offPars.off, defPars.def);
+			var count = offPars.cnt;
 			
-			var dmgRange=this.parseDamage(offPars.dmg);
+			var dmgRange = this.parseDamage(offPars.dmg);
             
-            switch(offPars.dmgType) {
-                case 'random':
-                    return this.getRandomFromRange(
-                        _getDamage(dmgRange.min),
-                        _getDamage(dmgRange.max)
-                    );
-                    
-                case 'min':
-                    return _getDamage(dmgRange.min);
-                    
-                case 'max':
-                    return _getDamage(dmgRange.max);
-                    
-                case 'avg':
-                    return _getDamage((dmgRange.min + dmgRange.max) / 2);
-            }
-				
-			function _getDamage(dmg) {
-				return coef*dmg*count^0 || 1;
-			}
+            return this.damageTypes[offPars.dmgType]
+                .call(this, dmgRange, coef * count) ^ 0 || 1;
 		},
-		parseDamage:function(damageStr) {
-			var dmgRangeReg=/^\s*\d+\s*-\s*\d+\s*$/;
+		parseDamage: function(damageStr) {
+			var dmgRangeReg = /^\s*\d+\s*-\s*\d+\s*$/;
             var dmgArr = dmgRangeReg.test(damageStr) ?
                 damageStr.split(/\s*-\s*/) :
                 [damageStr, damageStr];
 			return {min: +dmgArr[0], max: +dmgArr[1]};
-		}
+		},
+        getDamageTypesTemplate: function(index) {
+            var labels = {
+                random: 'Default',
+                min: 'Minimal',
+                max: 'Maximal',
+                avg: 'Average'
+            };
+            
+            var template = [];
+            
+            for (var type in this.damageTypes) {
+                if (this.damageTypes.hasOwnProperty(type)) {
+                    template.push({
+                        id: 'dmgType' + type.toUpperCase() + index,
+                        label: labels[type],
+                        name: 'damageType' + index,
+                        value: type
+                    });
+                }
+            }
+            
+            return template;
+        }
 	};
                                   
   //-------------------------------------------                                  
