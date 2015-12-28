@@ -78,11 +78,22 @@
 		<template id="logMessagePartTemplate">
 			<span class="%cls%">%message%</span>
 		</template>
+        
         <template id="radioTemplate">
             <label class="radio-label" for="%id%">
                 %label%
                 <input type="radio" name="%name%" id="%id%" value="%value%">
             </label>            
+        </template>
+        
+        <template id="sharedControlsTemplate">
+            <div class="col-6 col-offset-3 shared-controls">
+                <div class="form-group">
+					<div class="col-12">
+						<button type="button" class="btn btn-reset short-anim" id="reset">Reset</button>
+					</div>
+				</div>
+            </div>
         </template>
 	</div>
 </body>

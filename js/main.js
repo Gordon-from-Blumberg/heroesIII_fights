@@ -23,6 +23,7 @@ $(document).ready(function($) {
         {name:'Nymph', off:5, def:2, dmg:'1-2', spd:6, hp:4, cnt:16},
         {name:'Oceanida', off:6, def:2, dmg:'1-3', spd:8, hp:4, cnt:16},
         {name:'Halfling', off:4, def:2, dmg:'1-3', spd:5, hp:4, cnt:15},
+        {name:'Azure Dragon', off:50, def:50, dmg:'70-80', spd:19, hp:1000, cnt:1},        
 	];
 	creatures.get = function(name) {
 		for (var i = 0, size = this.length; i < size; i++) {
@@ -299,6 +300,7 @@ $(document).ready(function($) {
             function writeHit(offName, defName, dmg) {
                 attFc.log.write(
                     attFc.log.composeMessage([
+                        {msg: attFc.getParameter('count'), cls: 'primary'},
                         {msg: offName, cls: 'primary'},
                         {msg: 'hits'},
                         {msg: dmg, cls: 'warn'},
@@ -307,6 +309,13 @@ $(document).ready(function($) {
                     ])
                 );
             }
+        },
+        
+        reset: function() {
+            var name = this.getParameter('name');
+            var count = creatures.get(name).cnt;
+            this.setParameter('isDead', false);
+            this.setParameter('count', count, true);
         },
         
         // Pattern "Observer"
@@ -527,6 +536,7 @@ $(document).ready(function($) {
   // *** INIT ***
 	var App = function() {
 		var app = this;
+        this.htmlUtils = HtmlUtils.getInstance();
 		this.log = Logger.getInstance();
 		this.calculator = Calculator.getInstance();
 	
@@ -539,11 +549,28 @@ $(document).ready(function($) {
 			return new FormComponent(unit);
 		});
         
+        this.createSharedControls();
+        
         this.formComponents[0].addAttackHandler(this.formComponents[1]);
         this.formComponents[1].addAttackHandler(this.formComponents[0]);        
 	};
   
 	App.prototype = {
+        createSharedControls: function() {
+            var app = this;
+            
+            this.htmlUtils
+                ._createElementByTemplate('sharedControlsTemplate', {})
+                .appendTo('#formContainer');
+            
+            $('#reset').click(onResetClick);
+            
+            function onResetClick() {
+                app.formComponents.forEach(function(fc) {
+                    fc.reset();
+                });
+            }
+        }
 	};
 	
 	new App;

@@ -105,6 +105,10 @@ input[type="radio"] {
     margin: 0;
 }
 
+.shared-controls {
+    text-align: center;
+}
+
 .btn {
     display:inline-block;
     padding:4px 8px;
