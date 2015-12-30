@@ -95,8 +95,8 @@ $(document).ready(function($) {
 				return this._replace(template, optionTmpl);
 			}
 			
-			var result='';
-			for (var i=0, size=creatures.length; i < size; i++) {
+			var result = '';
+			for (var i = 0, size = creatures.length; i < size; i++) {
 				optionTmpl.value = creatures[i].name;
 				optionTmpl.text = creatures[i].name;
 				result += this._replace(template, optionTmpl);
@@ -132,6 +132,10 @@ $(document).ready(function($) {
 			creatures: creatures,
             damageTypes: this.calculator.getDamageTypesTemplate(this.index)
 		};
+        
+        params.damageTypes.forEach(function(tmpl) {
+            tmpl.checked = tmpl.value == unit.damageType ? ' checked' : '';
+        });
     
 		this.$form = this.htmlUtils.createForm('formContainer', params).find('#creatureForm' + this.index);
     
@@ -201,7 +205,7 @@ $(document).ready(function($) {
 		},*/
     
 		addHandlers: function() {
-			var self=this;
+			var self = this;
 			this.$form.find('.text-input').change(onParameterChange);
 			this.$form.find('.select-creature').change(onSelectUnit);
             this.$form.find('[name=damageType' + this.index + ']').change(onDamageTypeChange);
@@ -230,15 +234,25 @@ $(document).ready(function($) {
             var self = this;
             this.$form.find('.btn-attack').click(function() {
                 if (check($(this))) return;
+            
+                self.log.write(self.getParameter('name') + ' attacks ' + targetFc.getParameter('name'), 'muted');
                 
                 self.attack(targetFc);
-                
-                function check($this) {
-                    return $this.attr('disabled')
-                        || self.getParameter('isDead')
-                        || targetFc.getParameter('isDead');
-                }
             });  
+            
+            this.$form.find('.btn-simple-attack').click(function() {
+                if (check($(this))) return;
+            
+                self.log.write(self.getParameter('name') + ' attacks ' + targetFc.getParameter('name'), 'muted');
+                
+                self.simpleAttack(targetFc);
+            });
+            
+            function check($this) {
+                return $this.attr('disabled')
+                    || self.getParameter('isDead')
+                    || targetFc.getParameter('isDead');
+            }
         },
 		
 		_update: function(unit, parameter) {
@@ -258,27 +272,24 @@ $(document).ready(function($) {
 			unit.isDead ? this._setDead(unit) : this._setAlive(unit);
 			
 			function getInput(parameter) {
-				return $('#creature'+self.htmlUtils.capitalize(parameter)+self.index)
+				return $('#creature' + self.htmlUtils.capitalize(parameter) + self.index)
 			}
 		},
       
 		_setDead: function(unit) {
 			this.$form.addClass('creature-form-dead');
-            $('.btn-attack').attr('disabled', 'disabled');
+            $('.creature-form .btn').attr('disabled', 'disabled');
 		},
       
 		_setAlive: function(unit) {
 			this.$form.removeClass('creature-form-dead');
-            this.$form.find('.btn-attack').removeAttr('disabled');
+            this.$form.find('.btn').removeAttr('disabled');
 		},
         
-        attack: function(targetFc, isCounterattack) {
+        simpleAttack: function(targetFc) {
             var attFc = this;
             var offName = this.getParameter('name');
             var defName = targetFc.getParameter('name');
-            
-            var attacksStr = isCounterattack ? ' counterattacks ' : ' attacks ';
-            this.log.write(offName + attacksStr + defName, 'muted');
             
 			var dmg = this.calculator.getDamage(
                 attFc.getOffenseParameters(),
@@ -290,11 +301,7 @@ $(document).ready(function($) {
 			targetFc.pushDamage(dmg);
             
             if (targetFc.getParameter('isDead')) {
-                this.log.write(offName+' won!', 'success');
-            } else {
-                if (!isCounterattack && this.getParameter('getsCounterattack')) {
-                    targetFc.attack(this, true);
-                }
+                this.log.write(offName + ' won!', 'success');
             }
             
             function writeHit(offName, defName, dmg) {
@@ -309,6 +316,18 @@ $(document).ready(function($) {
                     ])
                 );
             }
+        },
+        
+        attack: function(targetFc, isCounterattack) {
+            this.simpleAttack(targetFc);
+            
+            if (isCounterattack
+                || targetFc.getParameter('isDead')
+                || !this.getParameter('getsCounterattack')) return;
+            
+            this.log.write(targetFc.getParameter('name') + ' counterattacks ' + this.getParameter('name'), 'muted');
+            targetFc.attack(this, true);
+            
         },
         
         reset: function() {
@@ -364,19 +383,19 @@ $(document).ready(function($) {
         
         this.getsCounterattack = true;
 	};
-	Unit.prototype={
-        fieldsForDisplay:['name','offense','defense','damage','speed','shorts','hitpoints','count'],
-		getTextInputTemplates:function(index) {
-			var self=this;
+	Unit.prototype = {
+        fieldsForDisplay: ['name', 'offense', 'defense', 'damage', 'speed', 'shorts', 'hitpoints', 'count'],
+		getTextInputTemplates: function(index) {
+			var self = this;
 			return this.fieldsForDisplay.map(function(field) {
 				return {
-					id: 'creature'+self.htmlUtils.capitalize(field)+index,
-					label:field,
-					value:self[field]
+					id: 'creature' + self.htmlUtils.capitalize(field) + index,
+					label: field,
+					value: self[field]
 				};
 			});
 		},
-		set:function(parameter, value) {
+		set: function(parameter, value) {
 			this[parameter] = value;
 			if (parameter == 'hitpoints' || parameter == 'count') {
 				this.summaryHitpoints = this.hitpoints * this.count;
@@ -390,25 +409,25 @@ $(document).ready(function($) {
 		* @param {Integer} Pushing damage
 		* @return {Integer} Count of killed creatures
 		*/
-		pushDamage:function(dmg) {
+		pushDamage: function(dmg) {
 			var countBeforeAttack = this.count;
-			this.summaryHitpoints-=dmg;
+			this.summaryHitpoints -= dmg;
 			
-			if (this.summaryHitpoints<=0) {
+			if (this.summaryHitpoints <= 0) {
 				this.summaryHitpoints = 0;
-				this.count=0;
-				this.isDead=true;
+				this.count = 0;
+				this.isDead = true;
 				return countBeforeAttack;
 			}
 			
-			this.count=Math.ceil(this.summaryHitpoints/this.hitpoints);		
+			this.count = Math.ceil(this.summaryHitpoints / this.hitpoints);		
 			return countBeforeAttack - this.count;
 		}
 	};
   
   //-----------------------------
 	var Calculator = function() {};
-	Calculator.getInstance=function() {
+	Calculator.getInstance = function() {
 		if (Calculator.instance == undefined) Calculator.instance = new Calculator;
 		return Calculator.instance;
 	};
@@ -492,29 +511,29 @@ $(document).ready(function($) {
   //-------------------------------------------                                  
 	var Logger = function() {
 		this.$container = $('#logContainer');
-		this.htmlUtils=HtmlUtils.getInstance();
+		this.htmlUtils = HtmlUtils.getInstance();
 		
 		this.htmlUtils._createElementByTemplate('logTemplate', {})
 			.appendTo(this.$container);
 		this.$log = $('#log');
 	};      
-	Logger.getInstance=function() {
+	Logger.getInstance = function() {
 		if (Logger.instance == undefined) Logger.instance = new Logger;
 		return Logger.instance;
 	};
 	Logger.prototype = {
-		clear:function() {
+		clear: function() {
 			this.$container.empty();
 		},
     
-		composeMessage:function(tmplList) {
-			var logger=this;
+		composeMessage: function(tmplList) {
+			var logger = this;
 			return tmplList.map(function(tmpl) {
 				return logger._wrpaToSpan(tmpl.msg, tmpl.cls);
 			}).join(' ');
 		},
     
-		write:function(message, cls) {
+		write: function(message, cls) {
 			this.$log.prepend(
 				this.htmlUtils
 					._createElementByTemplate(
@@ -523,7 +542,7 @@ $(document).ready(function($) {
 			);
 		},
       
-		_wrpaToSpan:function(message, cls) {
+		_wrpaToSpan: function(message, cls) {
 			return (cls == undefined || cls === '') ?
 				message :
 				this.htmlUtils._getHtmlByTemplate('logMessagePartTemplate', {

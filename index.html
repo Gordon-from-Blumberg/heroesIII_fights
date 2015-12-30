@@ -42,9 +42,14 @@
                         </div>
                     </div>
                     
+                    <div class="form-group">
+						<div class="col-4 col-offset-4">
+							<button type="button" class="btn btn-simple-attack short-anim" id="attack%i%">Simple attack</button>
+						</div>
+					</div>
 					<div class="form-group">
 						<div class="col-4 col-offset-4">
-							<button type="button" class="btn btn-attack short-anim" id="attack%i%">Attack!</button>
+							<button type="button" class="btn btn-attack short-anim" id="attack%i%">Attack</button>
 						</div>
 					</div>
 				</form>
@@ -82,7 +87,7 @@
         <template id="radioTemplate">
             <label class="radio-label" for="%id%">
                 %label%
-                <input type="radio" name="%name%" id="%id%" value="%value%">
+                <input type="radio" name="%name%" id="%id%" value="%value%"%checked%>
             </label>            
         </template>
         
