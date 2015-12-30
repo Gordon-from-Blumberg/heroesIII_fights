@@ -230,12 +230,10 @@ $(document).ready(function($) {
             }
 		},
         
-        addAttackHandler: function(targetFc) {   
+        addAttackHandlers: function(targetFc) {   
             var self = this;
             this.$form.find('.btn-attack').click(function() {
                 if (check($(this))) return;
-            
-                self.log.write(self.getParameter('name') + ' attacks ' + targetFc.getParameter('name'), 'muted');
                 
                 self.attack(targetFc);
             });  
@@ -318,16 +316,23 @@ $(document).ready(function($) {
             }
         },
         
-        attack: function(targetFc, isCounterattack) {
+        attack: function(targetFc) {
+            this.log.write(this.getParameter('name') + ' attacks ' + targetFc.getParameter('name'), 'muted');
+            
             this.simpleAttack(targetFc);
             
-            if (isCounterattack
-                || targetFc.getParameter('isDead')
-                || !this.getParameter('getsCounterattack')) return;
+            if (targetFc.getParameter('isDead')) return;
             
+            if (this.getParameter('getsCounterattack') && targetFc.getParameter('counterattacksCount') > 0) {
+                targetFc.counterattack(this);            
+            }
+        },
+        
+        counterattack: function(targetFc) {
             this.log.write(targetFc.getParameter('name') + ' counterattacks ' + this.getParameter('name'), 'muted');
-            targetFc.attack(this, true);
+            targetFc.setParameter('counterattacksCount', targetFc.getParameter('counterattacksCount') - 1);
             
+            this.simpleAttack(targetFc);
         },
         
         reset: function() {
@@ -382,6 +387,8 @@ $(document).ready(function($) {
 		this.isDead = false;
         
         this.getsCounterattack = true;
+        this.baseCounterattacksCount = template.ctrattks || 1;
+        this.counterattacksCount = this.baseCounterattacksCount;
 	};
 	Unit.prototype = {
         fieldsForDisplay: ['name', 'offense', 'defense', 'damage', 'speed', 'shorts', 'hitpoints', 'count'],
@@ -570,8 +577,8 @@ $(document).ready(function($) {
         
         this.createSharedControls();
         
-        this.formComponents[0].addAttackHandler(this.formComponents[1]);
-        this.formComponents[1].addAttackHandler(this.formComponents[0]);        
+        this.formComponents[0].addAttackHandlers(this.formComponents[1]);
+        this.formComponents[1].addAttackHandlers(this.formComponents[0]);        
 	};
   
 	App.prototype = {
@@ -589,6 +596,16 @@ $(document).ready(function($) {
                     fc.reset();
                 });
             }
+        },
+        
+        round: function() {
+            
+        },
+        
+        _recoveryCounterattacks: function() {
+            this.formComponents.forEach(function(fc) {
+                fc.setParameter('counterattacksCount', fc.getParameter('baseCounterattacksCount'));
+            });
         }
 	};
 	
