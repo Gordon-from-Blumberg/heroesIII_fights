@@ -71,8 +71,11 @@
     
 		<template id="logTemplate">
 			<div class="col-12">
-				<div class="log-window">
+				<div class="log-window" id="logWindow">
 					<div id="log" class="log"></div>
+                    <div id="logControls" class="log-controls">
+                        <button type="button" class="btn btn-log-clear short-anim" id="clearLog">Clear</button>
+                    </div>
 				</div>        
 			</div>
 		</template>

@@ -165,13 +165,15 @@ input[type="radio"] {
 .log-container {
 }
 .log-window {
-	height:15em;
-	overflow:auto;
+    position: relative;
+	height:15em;	
 	border-top:1px solid rgba(50,50,50,.6);	
 	background:#eee;/*#eaf0d8;*/
 }
 .log {  
+    height: 100%;
 	font-size:.8em;
+    overflow-y:scroll;
 }
 
 .log-message {
@@ -183,6 +185,12 @@ input[type="radio"] {
 .primary {color:#09c;}
 .warn {color:#a50;}
 .success {color:#0b2;}
+
+.log-controls {
+    position: absolute;
+    top: 5px;
+    right: 20px;
+}
 
 .templates {display:none}
 

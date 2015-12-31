@@ -19,7 +19,7 @@ $(document).ready(function($) {
         {name:'Goblin', off:4, def:2, dmg:'1-2', spd:5, hp:5, bsCnt:15},
 		{name:'Hobgoblin', off:5, def:3, dmg:'1-2', spd:7, hp:5, bsCnt:15},
         {name:'Pixie', off:2, def:2, dmg:'1-2', spd:7, hp:3, bsCnt:20},
-        {name:'Sprite', off:2, def:2, dmg:'1-3', spd:9, hp:3, bsCnt:20},
+        {name:'Sprite', off:2, def:2, dmg:'1-3', spd:9, hp:3, bsCnt:20, getsCtrattk:false},
         {name:'Nymph', off:5, def:2, dmg:'1-2', spd:6, hp:4, bsCnt:16},
         {name:'Oceanida', off:6, def:2, dmg:'1-3', spd:8, hp:4, bsCnt:16},
         {name:'Halfling', off:4, def:2, dmg:'1-3', spd:5, hp:4, bsCnt:15},
@@ -399,7 +399,7 @@ $(document).ready(function($) {
 		this.summaryHitpoints = this.hitpoints * this.count;
 		this.isDead = false;
         
-        this.getsCounterattack = true;
+        this.getsCounterattack = template.getsCtrattk == undefined ? true : template.getsCtrattk;
         this.baseCounterattacksCount = template.ctrattks || 1;
         this.counterattacksCount = this.baseCounterattacksCount;
 	};
@@ -530,12 +530,17 @@ $(document).ready(function($) {
                                   
   //-------------------------------------------                                  
 	var Logger = function() {
+        var logger = this;
 		this.$container = $('#logContainer');
 		this.htmlUtils = HtmlUtils.getInstance();
 		
 		this.htmlUtils._createElementByTemplate('logTemplate', {})
 			.appendTo(this.$container);
 		this.$log = $('#log');
+        
+        $('#clearLog').click(function() {
+            logger.clear();
+        });
 	};      
 	Logger.getInstance = function() {
 		if (Logger.instance == undefined) Logger.instance = new Logger;
@@ -543,7 +548,7 @@ $(document).ready(function($) {
 	};
 	Logger.prototype = {
 		clear: function() {
-			this.$container.empty();
+			this.$log.empty();
 		},
     
 		composeMessage: function(tmplList) {
