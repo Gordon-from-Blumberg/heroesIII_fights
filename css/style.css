@@ -95,14 +95,29 @@ p {margin:.5em 0}
     color:#b33;
 }
 
+.creature-form-winner .control {
+    border-color: rgba(0,187,34,.8);
+    color:#0b2;
+}
+.creature-form-winner label {
+    color:#0b2;
+}
+
 .radio-box-inline .radio-label {
     display: inline-block;
+    padding: 3px;
+    border-radius: 6px;
+    cursor: pointer;
 }
 .radio-box-inline .radio-label+.radio-label {
-    margin-left: 5px;
+    margin-left: 4px;
+}
+.radio-box-inline .radio-label:hover {
+    background: #e5e5e5;
 }
 input[type="radio"] {
     margin: 0;
+    cursor: default;
 }
 
 .shared-controls {
@@ -116,6 +131,7 @@ input[type="radio"] {
     border:1px solid rgba(50,50,50,.6);
     border-radius:6px;
     font: inherit;
+    color: inherit;
     text-align:center;
     cursor:pointer;
 }

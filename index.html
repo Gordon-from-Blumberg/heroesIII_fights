@@ -85,7 +85,7 @@
 		</template>
         
         <template id="radioTemplate">
-            <label class="radio-label" for="%id%">
+            <label class="radio-label short-anim" for="%id%">
                 %label%
                 <input type="radio" name="%name%" id="%id%" value="%value%"%checked%>
             </label>            
@@ -93,6 +93,11 @@
         
         <template id="sharedControlsTemplate">
             <div class="col-6 col-offset-3 shared-controls">
+                <div class="form-group">
+					<div class="col-12">
+						<button type="button" class="btn btn-fight short-anim" id="fight">Fight</button>
+					</div>
+				</div>
                 <div class="form-group">
 					<div class="col-12">
 						<button type="button" class="btn btn-reset short-anim" id="reset">Reset</button>

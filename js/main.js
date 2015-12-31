@@ -1,29 +1,29 @@
 $(document).ready(function($) {
 	var undefined;
 	var creatures = [
-		{name:'Peasant', off:1, def:1, dmg:1, spd:3, hp:1, cnt:25},
-        {name:'Pikeman', off:4, def:5, dmg:'1-3', spd:4, hp:10, cnt:14},
-        {name:'Halberdier', off:6, def:5, dmg:'2-3', spd:5, hp:10, cnt:14},
-        {name:'Centaur', off:5, def:3, dmg:'2-3', spd:6, hp:8, cnt:14},
-        {name:'Centaur Captain', off:6, def:3, dmg:'2-3', spd:8, hp:10, cnt:14},
-        {name:'Gremlin', off:3, def:3, dmg:'1-2', spd:4, hp:4, cnt:16},
-        {name:'Master Gremlin', off:4, def:4, dmg:'1-2', spd:5, hp:4, cnt:16},
-        {name:'Skeleton', off:5, def:4, dmg:'1-3', spd:4, hp:6, cnt:12},
-        {name:'Skeleton Warrior', off:6, def:6, dmg:'1-3', spd:5, hp:6, cnt:12},
-        {name:'Troglodyte', off:4, def:3, dmg:'1-3', spd:4, hp:5, cnt:14},
-        {name:'Infernal Troglodyte', off:5, def:4, dmg:'1-3', spd:5, hp:6, cnt:14},
-        {name:'Imp', off:2, def:3, dmg:'1-2', spd:5, hp:4, cnt:15},
-        {name:'Familiar', off:4, def:4, dmg:'1-2', spd:7, hp:4, cnt:15},
-        {name:'Gnoll', off:3, def:5, dmg:'2-3', spd:4, hp:6, cnt:12},
-        {name:'Gnoll Marauder', off:4, def:6, dmg:'2-3', spd:5, hp:6, cnt:12},
-        {name:'Goblin', off:4, def:2, dmg:'1-2', spd:5, hp:5, cnt:15},
-		{name:'Hobgoblin', off:5, def:3, dmg:'1-2', spd:7, hp:5, cnt:15},
-        {name:'Pixie', off:2, def:2, dmg:'1-2', spd:7, hp:3, cnt:20},
-        {name:'Sprite', off:2, def:2, dmg:'1-3', spd:9, hp:3, cnt:20},
-        {name:'Nymph', off:5, def:2, dmg:'1-2', spd:6, hp:4, cnt:16},
-        {name:'Oceanida', off:6, def:2, dmg:'1-3', spd:8, hp:4, cnt:16},
-        {name:'Halfling', off:4, def:2, dmg:'1-3', spd:5, hp:4, cnt:15},
-        {name:'Azure Dragon', off:50, def:50, dmg:'70-80', spd:19, hp:1000, cnt:1},        
+		{name:'Peasant', off:1, def:1, dmg:1, spd:3, hp:1, bsCnt:25},
+        {name:'Pikeman', off:4, def:5, dmg:'1-3', spd:4, hp:10, bsCnt:14},
+        {name:'Halberdier', off:6, def:5, dmg:'2-3', spd:5, hp:10, bsCnt:14},
+        {name:'Centaur', off:5, def:3, dmg:'2-3', spd:6, hp:8, bsCnt:14},
+        {name:'Centaur Captain', off:6, def:3, dmg:'2-3', spd:8, hp:10, bsCnt:14},
+        {name:'Gremlin', off:3, def:3, dmg:'1-2', spd:4, hp:4, bsCnt:16},
+        {name:'Master Gremlin', off:4, def:4, dmg:'1-2', spd:5, hp:4, bsCnt:16},
+        {name:'Skeleton', off:5, def:4, dmg:'1-3', spd:4, hp:6, bsCnt:12},
+        {name:'Skeleton Warrior', off:6, def:6, dmg:'1-3', spd:5, hp:6, bsCnt:12},
+        {name:'Troglodyte', off:4, def:3, dmg:'1-3', spd:4, hp:5, bsCnt:14},
+        {name:'Infernal Troglodyte', off:5, def:4, dmg:'1-3', spd:5, hp:6, bsCnt:14},
+        {name:'Imp', off:2, def:3, dmg:'1-2', spd:5, hp:4, bsCnt:15},
+        {name:'Familiar', off:4, def:4, dmg:'1-2', spd:7, hp:4, bsCnt:15},
+        {name:'Gnoll', off:3, def:5, dmg:'2-3', spd:4, hp:6, bsCnt:12},
+        {name:'Gnoll Marauder', off:4, def:6, dmg:'2-3', spd:5, hp:6, bsCnt:12},
+        {name:'Goblin', off:4, def:2, dmg:'1-2', spd:5, hp:5, bsCnt:15},
+		{name:'Hobgoblin', off:5, def:3, dmg:'1-2', spd:7, hp:5, bsCnt:15},
+        {name:'Pixie', off:2, def:2, dmg:'1-2', spd:7, hp:3, bsCnt:20},
+        {name:'Sprite', off:2, def:2, dmg:'1-3', spd:9, hp:3, bsCnt:20},
+        {name:'Nymph', off:5, def:2, dmg:'1-2', spd:6, hp:4, bsCnt:16},
+        {name:'Oceanida', off:6, def:2, dmg:'1-3', spd:8, hp:4, bsCnt:16},
+        {name:'Halfling', off:4, def:2, dmg:'1-3', spd:5, hp:4, bsCnt:15},
+        {name:'Azure Dragon', off:50, def:50, dmg:'70-80', spd:19, hp:1000, bsCnt:1},        
 	];
 	creatures.get = function(name) {
 		for (var i = 0, size = this.length; i < size; i++) {
@@ -148,7 +148,11 @@ $(document).ready(function($) {
 		*/
 		this.setParameter = function(parameter, value, toUpdate) {
 			unit.set(parameter, value);
-			this.log.write('Parameter ' + parameter + ' = ' + value + ' is set for unit ' + unit.name, 'muted');
+            
+            if (unit.fieldsForDisplay.indexOf(parameter) != -1) {
+                this.log.write(parameter + ' = ' + value + ' is set for unit ' + unit.name, 'muted');
+            }
+            
 			if (toUpdate === true) this._update(unit, parameter);
 		};
 		this.getParameter = function(parameter) {
@@ -268,21 +272,26 @@ $(document).ready(function($) {
             $('#dmgType' + unit.damageType.toUpperCase() + this.index).attr('checked', 'checked');
 			
 			unit.isDead ? this._setDead(unit) : this._setAlive(unit);
+            $('.creature-form-winner').removeClass('creature-form-winner');
 			
 			function getInput(parameter) {
 				return $('#creature' + self.htmlUtils.capitalize(parameter) + self.index)
 			}
 		},
       
-		_setDead: function(unit) {
+		_setDead: function() {
 			this.$form.addClass('creature-form-dead');
             $('.creature-form .btn').attr('disabled', 'disabled');
 		},
       
-		_setAlive: function(unit) {
+		_setAlive: function() {
 			this.$form.removeClass('creature-form-dead');
             this.$form.find('.btn').removeAttr('disabled');
 		},
+        
+        _setWinner: function() {
+            this.$form.addClass('creature-form-winner');
+        },
         
         simpleAttack: function(targetFc) {
             var attFc = this;
@@ -300,19 +309,18 @@ $(document).ready(function($) {
             
             if (targetFc.getParameter('isDead')) {
                 this.log.write(offName + ' won!', 'success');
+                this._setWinner();
             }
             
             function writeHit(offName, defName, dmg) {
-                attFc.log.write(
-                    attFc.log.composeMessage([
-                        {msg: attFc.getParameter('count'), cls: 'primary'},
-                        {msg: offName, cls: 'primary'},
-                        {msg: 'hits'},
-                        {msg: dmg, cls: 'warn'},
-                        {msg: 'damage to'},
-                        {msg: defName, cls: 'primary'}
-                    ])
-                );
+                attFc.log.composeAndWrite([
+                    {msg: attFc.getParameter('count'), cls: 'primary'},
+                    {msg: offName, cls: 'primary'},
+                    {msg: 'hits'},
+                    {msg: dmg, cls: 'warn'},
+                    {msg: 'damage to'},
+                    {msg: defName, cls: 'primary'}
+                ]);
             }
         },
         
@@ -329,17 +337,21 @@ $(document).ready(function($) {
         },
         
         counterattack: function(targetFc) {
-            this.log.write(targetFc.getParameter('name') + ' counterattacks ' + this.getParameter('name'), 'muted');
-            targetFc.setParameter('counterattacksCount', targetFc.getParameter('counterattacksCount') - 1);
+            this.log.write(this.getParameter('name') + ' counterattacks ' + targetFc.getParameter('name'), 'muted');
+            this.setParameter('counterattacksCount', this.getParameter('counterattacksCount') - 1);
             
             this.simpleAttack(targetFc);
         },
         
         reset: function() {
             var name = this.getParameter('name');
-            var count = creatures.get(name).cnt;
+            var count = this.getParameter('baseCount');
             this.setParameter('isDead', false);
             this.setParameter('count', count, true);
+        },
+        
+        doTurn: function(targetFc) {
+            this.attack(targetFc);
         },
         
         // Pattern "Observer"
@@ -380,6 +392,7 @@ $(document).ready(function($) {
 		this.hitpoints = template.hp || 1;
 		this.shorts = template.shts || 0;
 		this.baseCount = template.bsCnt || 25;
+        this.additionalGrowth = template.addGrth || false;
 		this.count = template.cnt || this.baseCount;
 		
 		this.currentHitpoints = this.hitpoints;
@@ -536,7 +549,7 @@ $(document).ready(function($) {
 		composeMessage: function(tmplList) {
 			var logger = this;
 			return tmplList.map(function(tmpl) {
-				return logger._wrpaToSpan(tmpl.msg, tmpl.cls);
+				return logger._wrapToSpan(tmpl.msg, tmpl.cls);
 			}).join(' ');
 		},
     
@@ -545,11 +558,15 @@ $(document).ready(function($) {
 				this.htmlUtils
 					._createElementByTemplate(
 						'logMessageTemplate',
-						{message:this._wrpaToSpan(message, cls)})
+						{message:this._wrapToSpan(message, cls)})
 			);
 		},
+        
+        composeAndWrite: function(tmplList) {
+            this.write(this.composeMessage(tmplList));
+        },
       
-		_wrpaToSpan: function(message, cls) {
+		_wrapToSpan: function(message, cls) {
 			return (cls == undefined || cls === '') ?
 				message :
 				this.htmlUtils._getHtmlByTemplate('logMessagePartTemplate', {
@@ -578,7 +595,7 @@ $(document).ready(function($) {
         this.createSharedControls();
         
         this.formComponents[0].addAttackHandlers(this.formComponents[1]);
-        this.formComponents[1].addAttackHandlers(this.formComponents[0]);        
+        this.formComponents[1].addAttackHandlers(this.formComponents[0]); 
 	};
   
 	App.prototype = {
@@ -590,18 +607,62 @@ $(document).ready(function($) {
                 .appendTo('#formContainer');
             
             $('#reset').click(onResetClick);
+            $('#fight').click(onFightClick);
             
             function onResetClick() {
                 app.formComponents.forEach(function(fc) {
                     fc.reset();
                 });
             }
-        },
-        
-        round: function() {
             
+            function onFightClick() {                
+                app.fight();
+            }
         },
         
+        round: function(first, second) {
+            this._recoveryCounterattacks();
+            
+            first.doTurn(second);
+            
+            if (!first.getParameter('isDead') && !second.getParameter('isDead')) {
+                second.doTurn(first);
+            }
+        },
+        
+        fight: function() {        
+            var first = this._getFirstFc() || this.formComponents[0];
+            
+            var second = first == this.formComponents[0] ? this.formComponents[1] : this.formComponents[0];
+
+            this.log.composeAndWrite([
+                {msg: 'Start of fight:'},
+                {msg: first.getParameter('name'), cls: 'primary'},
+                {msg: 'vs'},
+                {msg: second.getParameter('name'), cls: 'primary'}
+            ]);
+
+            while(isBothAlive()) {
+                this.round(first, second);
+            }            
+            
+            function isBothAlive() {
+                return !first.getParameter('isDead')
+                    && !second.getParameter('isDead');
+            }    
+        },
+        
+        _getFirstFc: function() {
+            var fc0 = this.formComponents[0];
+            var fc1 = this.formComponents[1];
+
+            if (fc0.getParameter('speed') != fc1.getParameter('speed')) {
+                return fc0.getParameter('speed') > fc1.getParameter('speed') ? fc0 : fc1;
+            }
+
+            return null;
+        },
+
         _recoveryCounterattacks: function() {
             this.formComponents.forEach(function(fc) {
                 fc.setParameter('counterattacksCount', fc.getParameter('baseCounterattacksCount'));
