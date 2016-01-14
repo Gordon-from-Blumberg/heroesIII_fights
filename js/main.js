@@ -236,6 +236,7 @@ $(document).ready(function($) {
         
         addAttackHandlers: function(targetFc) {   
             var self = this;
+            
             this.$form.find('.btn-attack').click(function() {
                 if (check($(this))) return;
                 
@@ -248,6 +249,12 @@ $(document).ready(function($) {
                 self.log.write(self.getParameter('name') + ' attacks ' + targetFc.getParameter('name'), 'muted');
                 
                 self.simpleAttack(targetFc);
+            });
+            
+            this.$form.find('.btn-show-damage').click(function() {
+                if (check($(this))) return;
+            
+                self.showPossibleDamage(targetFc);
             });
             
             function check($this) {
@@ -291,6 +298,28 @@ $(document).ready(function($) {
         
         _setWinner: function() {
             this.$form.addClass('creature-form-winner');
+        },
+        
+        showPossibleDamage: function(targetFc) {
+            var offName = this.getParameter('name');
+            var defName = targetFc.getParameter('name');
+            
+            var offPars = this.getOffenseParameters();
+            var defPars = targetFc.getDefenseParameters();
+            
+            offPars.dmgType = 'min';
+            var minDamage = this.calculator.getDamage(offPars, defPars);
+            
+            offPars.dmgType = 'max';
+            var maxDamage = this.calculator.getDamage(offPars, defPars);
+            
+            this.log.composeAndWrite([
+                {msg: offName, cls: 'primary'},
+                {msg: 'can hit'},
+                {msg: minDamage + ' - ' + maxDamage, cls: 'warn'},
+                {msg: 'to'},
+                {msg: defName, cls: 'primary'}
+            ]);
         },
         
         simpleAttack: function(targetFc) {

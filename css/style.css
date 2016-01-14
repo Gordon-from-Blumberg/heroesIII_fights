@@ -124,8 +124,13 @@ input[type="radio"] {
     text-align: center;
 }
 
+.btn-group {
+    text-align: center;
+}
+
 .btn {
     display:inline-block;
+    width:100%;
     padding:4px 8px;
     background:#eee;/*#f0f5c8;*/
     border:1px solid rgba(50,50,50,.6);
